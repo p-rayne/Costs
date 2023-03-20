@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from costs import models
+from app.costs import models
 
 
 class FilterCategoryListSerializer(serializers.ListSerializer):
@@ -40,6 +40,7 @@ class CostSerializer(serializers.HyperlinkedModelSerializer):
             "id",
             "owner",
             "category",
+            "currency",
             "value",
             "date",
             "created_at",

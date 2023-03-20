@@ -22,6 +22,19 @@ class Category(models.Model):
 
 
 class Cost(models.Model):
+    RUBLE = "RUB"
+    DOLLAR = "USD"
+    EURO = "EUR"
+    LIRA = "TRY"
+    TENGE = "KZT"
+    CURRENCY_CHOICES = [
+        (RUBLE, "Рубль"),
+        (DOLLAR, "Доллар"),
+        (EURO, "Евро"),
+        (LIRA, "Лира"),
+        (TENGE, "Тенге"),
+    ]
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     owner = models.ForeignKey(User, related_name="costs", on_delete=models.CASCADE)
     category = models.ForeignKey(
@@ -31,3 +44,8 @@ class Cost(models.Model):
     date = models.DateField()
     created_at = models.DateField(auto_now_add=True)
     note = models.CharField(max_length=255, null=True, blank=True)
+    currency = models.CharField(
+        max_length=3,
+        choices=CURRENCY_CHOICES,
+        default=RUBLE,
+    )
