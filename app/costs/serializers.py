@@ -1,36 +1,57 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator
 from app.costs import models
 
 
-class FilterCategoryListSerializer(serializers.ListSerializer):
-    def to_representation(self, data):
-        data = data.filter(parent=None)
-        return super().to_representation(data)
+class FilterCategoryPKRelatedField(serializers.PrimaryKeyRelatedField):
+    def get_queryset(self):
+        user = self.context["request"].user
+        queryset = models.Category.objects.filter(owner=user)
+        return queryset
 
 
-class RecursiveSerializer(serializers.Serializer):
-    def to_representation(self, value):
-        # serializer = self.parent.parent.__class__(value, context=self.context)
-        serializer = CategorySerializer(value, context=self.context)
-        return serializer.data
+class CostsCategorySerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = models.Cost
+        fields = ["url", "value", "date"]
 
 
-class CategorySerializer(serializers.HyperlinkedModelSerializer):
-    owner = serializers.ReadOnlyField(source="owner.username")
-    children = RecursiveSerializer(many=True)
+class ListRetrieveCategorySerializer(serializers.HyperlinkedModelSerializer):
+    costs = CostsCategorySerializer(many=True)
+    total_spent = serializers.DecimalField(
+        max_digits=11, decimal_places=2, allow_null=True
+    )
 
     class Meta:
-        list_serializer_class = FilterCategoryListSerializer
         model = models.Category
-        fields = ["id", "url", "owner", "name", "description", "children"]
+        fields = [
+            "id",
+            "url",
+            "name",
+            "description",
+            "total_spent",
+            "costs",
+        ]
+
+
+class CreateUpdateDeleteCategorySerializer(serializers.HyperlinkedModelSerializer):
+    owner = serializers.HiddenField(default=serializers.CurrentUserDefault())
+
+    class Meta:
+        model = models.Category
+        fields = ["id", "url", "owner", "name", "description"]
+
+        validators = [
+            UniqueTogetherValidator(
+                queryset=models.Category.objects.all(), fields=["owner", "name"]
+            )
+        ]
 
 
 class CostSerializer(serializers.HyperlinkedModelSerializer):
     owner = serializers.HiddenField(default=serializers.CurrentUserDefault())
-
-    category = serializers.PrimaryKeyRelatedField(
-        queryset=models.Category.objects.all()
-    )
+    category = FilterCategoryPKRelatedField()
+    category_name = serializers.ReadOnlyField(source="category.name")
     created_at = serializers.ReadOnlyField()
 
     class Meta:
@@ -40,9 +61,14 @@ class CostSerializer(serializers.HyperlinkedModelSerializer):
             "id",
             "owner",
             "category",
-            "currency",
+            "category_name",
             "value",
             "date",
             "created_at",
             "note",
         ]
+
+    def validate_value(self, value):
+        if value < 0:
+            raise serializers.ValidationError("This field must be an positive number.")
+        return value
