@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 import uuid
 
@@ -9,31 +11,12 @@ class Category(models.Model):
     owner = models.ForeignKey(User, related_name="categories", on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     description = models.CharField(max_length=255, null=True, blank=True)
-    parent = models.ForeignKey(
-        "self",
-        on_delete=models.SET_NULL,
-        blank=True,
-        null=True,
-        related_name="children",
-    )
 
     def __str__(self):
         return self.name
 
 
 class Cost(models.Model):
-    RUBLE = "RUB"
-    DOLLAR = "USD"
-    EURO = "EUR"
-    LIRA = "TRY"
-    TENGE = "KZT"
-    CURRENCY_CHOICES = [
-        (RUBLE, "Рубль"),
-        (DOLLAR, "Доллар"),
-        (EURO, "Евро"),
-        (LIRA, "Лира"),
-        (TENGE, "Тенге"),
-    ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     owner = models.ForeignKey(User, related_name="costs", on_delete=models.CASCADE)
@@ -44,8 +27,20 @@ class Cost(models.Model):
     date = models.DateField()
     created_at = models.DateField(auto_now_add=True)
     note = models.CharField(max_length=255, null=True, blank=True)
-    currency = models.CharField(
-        max_length=3,
-        choices=CURRENCY_CHOICES,
-        default=RUBLE,
+
+
+@receiver(post_save, sender=User)
+def create_default_category(sender, instance, created, **kwargs):
+    DEFAULT_CATEGORY = (
+        ("Продукты", "Расходы на еду"),
+        ("Транспорт", "Расходы на транспорт"),
+        ("Развлечения", "Расходы на развлечения"),
+        ("Коммунальные платежи", "Расходы на коммунальные платежи"),
     )
+    if created:
+        category = [
+            Category(owner=instance, name=name, description=description)
+            for name, description in DEFAULT_CATEGORY
+        ]
+
+        Category.objects.bulk_create(category)
