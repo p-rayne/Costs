@@ -3,43 +3,21 @@ from rest_framework.validators import UniqueTogetherValidator
 from app.costs import models
 
 
-class FilterCategoryPKRelatedField(serializers.PrimaryKeyRelatedField):
-    def get_queryset(self):
-        user = self.context["request"].user
-        queryset = models.Category.objects.filter(owner=user)
-        return queryset
-
-
-class CostsCategorySerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = models.Cost
-        fields = ["url", "value", "date"]
-
-
-class ListRetrieveCategorySerializer(serializers.HyperlinkedModelSerializer):
-    costs = CostsCategorySerializer(many=True)
-    total_spent = serializers.DecimalField(
-        max_digits=11, decimal_places=2, allow_null=True
+class CategorySerializer(serializers.ModelSerializer):
+    owner = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    total_cost = serializers.DecimalField(
+        max_digits=11, decimal_places=2, allow_null=True, read_only=True
     )
 
     class Meta:
         model = models.Category
         fields = [
             "id",
-            "url",
+            "owner",
             "name",
             "description",
-            "total_spent",
-            "costs",
+            "total_cost",
         ]
-
-
-class CreateUpdateDeleteCategorySerializer(serializers.HyperlinkedModelSerializer):
-    owner = serializers.HiddenField(default=serializers.CurrentUserDefault())
-
-    class Meta:
-        model = models.Category
-        fields = ["id", "url", "owner", "name", "description"]
 
         validators = [
             UniqueTogetherValidator(
@@ -48,16 +26,14 @@ class CreateUpdateDeleteCategorySerializer(serializers.HyperlinkedModelSerialize
         ]
 
 
-class CostSerializer(serializers.HyperlinkedModelSerializer):
+class CostSerializer(serializers.ModelSerializer):
     owner = serializers.HiddenField(default=serializers.CurrentUserDefault())
-    category = FilterCategoryPKRelatedField()
-    category_name = serializers.ReadOnlyField(source="category.name")
+    category_name = serializers.ReadOnlyField()
     created_at = serializers.ReadOnlyField()
 
     class Meta:
         model = models.Cost
         fields = [
-            "url",
             "id",
             "owner",
             "category",
@@ -72,3 +48,10 @@ class CostSerializer(serializers.HyperlinkedModelSerializer):
         if value < 0:
             raise serializers.ValidationError("This field must be an positive number.")
         return value
+
+    def validate_category(self, category):
+        if category.owner != self.context["request"].user:
+            raise serializers.ValidationError(
+                "This category does not belong to this user."
+            )
+        return category
