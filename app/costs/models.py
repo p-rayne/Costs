@@ -7,6 +7,10 @@ import uuid
 
 
 class Category(models.Model):
+    """
+    Cost categories
+    """
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     owner = models.ForeignKey(User, related_name="categories", on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
@@ -17,6 +21,9 @@ class Category(models.Model):
 
 
 class Cost(models.Model):
+    """
+    Costs
+    """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     owner = models.ForeignKey(
@@ -33,6 +40,10 @@ class Cost(models.Model):
 
 @receiver(post_save, sender=User)
 def create_default_category(sender, instance, created, **kwargs):
+    """
+    Creates default categories for a new user
+    """
+
     DEFAULT_CATEGORY = (
         ("Продукты", "Расходы на еду"),
         ("Транспорт", "Расходы на транспорт"),

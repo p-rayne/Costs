@@ -11,6 +11,10 @@ from app.costs.filters import CostFilter
 
 
 class CostViewSet(viewsets.ModelViewSet):
+    """
+    An API endpoint that allows costs to be viewed or edited.
+    """
+
     serializer_class = serializers.CostSerializer
     queryset = Cost.objects.all()
     filter_backends = [
@@ -32,6 +36,7 @@ class CostViewSet(viewsets.ModelViewSet):
         """
         Retrieve costs by date range.
         """
+
         start_date = request.query_params.get("start_date")
         end_date = request.query_params.get("end_date")
 
@@ -48,6 +53,10 @@ class CostViewSet(viewsets.ModelViewSet):
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
+    """
+    An API endpoint that allows the category to be viewed or edited.
+    """
+
     queryset = Category.objects.all()
     permission_classes = [IsAuthenticated]
     serializer_class = serializers.CategorySerializer
