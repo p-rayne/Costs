@@ -20,6 +20,7 @@ from .yasg import urlpatterns as doc_url
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/v1/", include("app.costs.urls")),
+    path("api/v1/auth/", include("app.auth.urls")),
     path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
 ]
 

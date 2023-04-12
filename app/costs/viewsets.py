@@ -27,6 +27,8 @@ class CostViewSet(viewsets.ModelViewSet):
     ordering = ["-date"]
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return Cost.objects.none()
         return self.queryset.filter(owner=self.request.user).annotate(
             category_name=F("category__name")
         )
@@ -62,6 +64,8 @@ class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.CategorySerializer
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return Category.objects.none()
         queryset = self.queryset.filter(owner=self.request.user).annotate(
             total_cost=Sum("costs__value")
         )
