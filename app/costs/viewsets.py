@@ -1,13 +1,15 @@
 from django.db.models import Sum, F
-from rest_framework import viewsets, filters
+from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from datetime import datetime
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 from app.costs import serializers
 from app.costs.models import Cost, Category
-from app.costs.filters import CostFilter
+from app.costs.filters import CostFilter, OrderingFilterWithSchema
 
 
 class CostViewSet(viewsets.ModelViewSet):
@@ -19,7 +21,7 @@ class CostViewSet(viewsets.ModelViewSet):
     queryset = Cost.objects.all()
     filter_backends = [
         DjangoFilterBackend,
-        filters.OrderingFilter,
+        OrderingFilterWithSchema,
     ]
     filterset_class = CostFilter
     permission_classes = [IsAuthenticated]
@@ -33,7 +35,23 @@ class CostViewSet(viewsets.ModelViewSet):
             category_name=F("category__name")
         )
 
-    @action(detail=False)
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                "start_date",
+                openapi.IN_QUERY,
+                description="Start date in format: YYYY-MM-DD",
+                type=openapi.TYPE_STRING,
+            ),
+            openapi.Parameter(
+                "end_date",
+                openapi.IN_QUERY,
+                description="End date in format: YYYY-MM-DD",
+                type=openapi.TYPE_STRING,
+            ),
+        ]
+    )
+    @action(detail=False, methods=["GET"], filter_backends=[])
     def by_date(self, request):
         """
         Retrieve costs by date range.
