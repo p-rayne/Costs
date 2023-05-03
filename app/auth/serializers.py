@@ -15,32 +15,18 @@ class RegisterSerializer(serializers.ModelSerializer):
         required=True, validators=[UniqueValidator(queryset=User.objects.all())]
     )
     password = serializers.CharField(
-        write_only=True, required=True, validators=[validate_password]
+        min_length=8, write_only=True, required=True, validators=[validate_password]
     )
-    password2 = serializers.CharField(write_only=True, required=True)
 
     class Meta:
         model = User
-        fields = ("username", "password", "password2", "email")
-
-    def validate(self, attrs):
-        """
-        Checks that passwords match
-        """
-        if attrs["password"] != attrs["password2"]:
-            raise serializers.ValidationError(
-                {"password": "Password fields didn't match."}
-            )
-        return attrs
+        fields = ("username", "password", "email")
+        extra_kwargs = {"username": {"min_length": 3}}
 
     def create(self, validated_data):
         """
         Creates a new user with the given data.
         """
-        user = User.objects.create_user(
-            validated_data["username"],
-            validated_data["email"],
-            validated_data["password"],
-        )
+        user = User.objects.create_user(**validated_data)
 
         return user

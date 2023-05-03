@@ -11,18 +11,7 @@ class RegisterSerializerTest(TestCase):
             "username": "testuser",
             "email": "testuser@example.com",
             "password": "testpassword",
-            "password2": "testpassword",
         }
-
-    def test_validate_password(self):
-        serializer = RegisterSerializer(data=self.data)
-        self.assertTrue(serializer.is_valid())
-
-        self.data["password"] = "weak"
-        self.data["password2"] = "weak"
-        serializer = RegisterSerializer(data=self.data)
-        self.assertFalse(serializer.is_valid())
-        self.assertIn("password", serializer.errors)
 
     def test_create_user(self):
         serializer = RegisterSerializer(data=self.data)
@@ -33,13 +22,13 @@ class RegisterSerializerTest(TestCase):
         self.assertEqual(user.username, "testuser")
         self.assertEqual(user.email, "testuser@example.com")
 
-    def test_missing_fields(self):
+    def test_missing_username_fields(self):
         self.data["username"] = ""
         serializer = RegisterSerializer(data=self.data)
         self.assertFalse(serializer.is_valid())
         self.assertIn("username", serializer.errors)
 
-    def test_fields_are_required(self):
+    def test_test_missing_email_fields(self):
         self.data.pop("email")
         serializer = RegisterSerializer(data=self.data)
         self.assertFalse(serializer.is_valid())

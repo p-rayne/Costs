@@ -14,7 +14,6 @@ class RegisterViewTestCase(APITestCase):
             "username": "testuser",
             "email": "testuser@example.com",
             "password": "testpassword",
-            "password2": "testpassword",
         }
 
     def test_register_user(self):
@@ -25,7 +24,6 @@ class RegisterViewTestCase(APITestCase):
 
     def test_register_user_with_weak_password(self):
         self.data["password"] = "weak"
-        self.data["password2"] = "weak"
         response = self.client.post(self.register_url, self.data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(User.objects.count(), 0)
