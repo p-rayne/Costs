@@ -1,0 +1,22 @@
+services:
+  backend:
+    build: .
+    container_name: costs_container
+    restart: always
+    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000
+    networks:
+      projectnet:
+        ipv4_address: 172.26.0.2
+    volumes:
+      - static_content:/usr/src/app/staticfiles/
+      - db-data:/usr/src/app/db/
+    env_file:
+      - ./.env.prod
+
+networks:
+  projectnet:
+    external: true
+
+volumes:
+  static_content:
+  db-data:
