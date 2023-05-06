@@ -21,8 +21,9 @@ urlpatterns = [
         schema_view.without_ui(cache_timeout=0),
         name="schema-json",
     ),
+    # TODO after installing the frontend, return the path value to "swagger/"
     path(
-        "swagger/",
+        "",
         schema_view.with_ui("swagger", cache_timeout=0),
         name="schema-swagger-ui",
     ),
