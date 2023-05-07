@@ -8,4 +8,3 @@ COPY ./requirements.txt .
 RUN pip install -r requirements.txt
 COPY . .
 
-# RUN ./manage.py collectstatic --noinput --clear

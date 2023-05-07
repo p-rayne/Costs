@@ -11,8 +11,8 @@ services:
       projectnet:
         ipv4_address: 172.26.0.2
     volumes:
-      - static_content:/usr/src/app/staticfiles/
-      - db-data:/usr/src/app/db/
+      - static_content:/code/staticfiles/
+      - db-data:/code/db/
     env_file:
       - ./.env.prod
 

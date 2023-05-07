@@ -6,8 +6,8 @@ services:
       python manage.py collectstatic --noinput &&
       gunicorn config.wsgi:application --bind 0.0.0.0:8000"
     volumes:
-      - static_content:/usr/src/app/staticfiles/
-      - db-data:/usr/src/app/db/
+      - static_content:/code/staticfiles/
+      - db-data:/code/db/
     ports:
       - 8000:8000
     env_file:
