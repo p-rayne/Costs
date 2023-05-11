@@ -14,8 +14,8 @@ services:
 
 networks:
   default:
-    external:
-      name: caddy_default
+    name: caddy_default
+    external: true
 
 volumes:
   static_content:
